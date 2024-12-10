@@ -1,25 +1,20 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import path from "path";
 
 export default defineConfig({
-    root: "./",
+    plugins: [vue()],
+    root: path.join(__dirname, "src"),
     base: "",
     build: {
-        outDir: "../out",
+        outDir: "../../media/dist",
         emptyOutDir: true,
         rollupOptions: {
             output: {
-                entryFileNames: "assets/main.js",
-                // Since we are importing style.css in main.js, Vite will produce a CSS asset.
-                // Let's fix its name as well:
-                assetFileNames: (assetInfo) => {
-                    if (assetInfo.name && assetInfo.name.endsWith(".css")) {
-                        return "assets/style.css";
-                    }
-                    return "assets/[name].[ext]";
-                },
+                entryFileNames: `assets/[name].js`,
+                chunkFileNames: `assets/[name].js`,
+                assetFileNames: `assets/[name].[ext]`,
             },
         },
     },
-    plugins: [vue()],
 });

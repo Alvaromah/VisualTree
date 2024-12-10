@@ -10,7 +10,7 @@
         "*.user": true,
         "*.suo": true,
         "*.log": true,
-        "*.gitignore": true,
+        "*.gitignore": false,
         "*.vscodeignore": true,
         "*.md": true,
         ".vs/": true
