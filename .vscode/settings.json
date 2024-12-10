@@ -1,0 +1,45 @@
+{
+    // Ocultar carpetas y archivos comunes generados automáticamente
+    "files.exclude": {
+        "bin/": true,
+        "obj/": true,
+        "node_modules/": true,
+        "jsconfig.json": true,
+        "eslint.config.mjs": true,
+        "**/package-lock.json": true,
+        "*.user": true,
+        "*.suo": true,
+        "*.log": true,
+        "*.gitignore": true,
+        "*.vscodeignore": true,
+        "*.md": true,
+        ".vs/": true
+    },
+
+    // Formatear el código automáticamente al guardar
+    "editor.formatOnSave": true,
+
+    // Ajustes de sangría para imitar Visual Studio
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+
+    // Activar autoguardado
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000, // Guardar después de 1 segundo de inactividad
+
+    // Mostrar números de línea como en Visual Studio
+    "editor.lineNumbers": "on",
+
+    // Habilitar minimapa en el editor (como el map view en VS)
+    "editor.minimap.enabled": true,
+
+    // Depuración específica de .NET
+    "dotnet.defaultSolution": "TuArchivoDeSolución.sln",
+
+    // Habilitar IntelliSense para proyectos .NET
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.useModernNet": true,
+
+    // Soporte para tareas de compilación y depuración
+    "task.autoDetect": "on"
+}
