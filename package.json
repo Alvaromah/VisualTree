@@ -12,15 +12,18 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "visual-tree.helloWorld",
-      "title": "Hello World"
-    }]
+    "commands": [
+      {
+        "command": "visual-tree.showUI",
+        "title": "VisualTree"
+      }
+    ]
   },
   "scripts": {
-    "lint": "eslint .",
-    "pretest": "npm run lint",
-    "test": "vscode-test"
+    "vscode:prepublish": "npm run build",
+    "build": "cd webview && vite build",
+    "watch": "cd webview && vite build --watch",
+    "dev": "cd webview && vite"
   },
   "devDependencies": {
     "@types/vscode": "^1.95.0",
