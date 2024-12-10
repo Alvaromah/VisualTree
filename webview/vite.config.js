@@ -5,7 +5,7 @@ import path from "path";
 export default defineConfig({
     plugins: [vue()],
     root: path.join(__dirname, "src"),
-    base: "",
+    base: "./",
     build: {
         outDir: "../../media/dist",
         emptyOutDir: true,

@@ -1,24 +1,17 @@
 const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
-const crypto = require("crypto");
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-    let currentPanel = undefined;
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand("visual-tree.showUI", () => {
-            if (currentPanel) {
-                currentPanel.reveal(vscode.ViewColumn.One);
-                return;
-            }
-
-            currentPanel = vscode.window.createWebviewPanel(
-                "myExtension",
-                "My Extension UI",
+    const disposable = vscode.commands.registerCommand(
+        "visual-tree.showUI",
+        function () {
+            const panel = vscode.window.createWebviewPanel(
+                "visualTree",
+                "Visual Tree",
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
@@ -30,60 +23,49 @@ function activate(context) {
                 }
             );
 
-            // Generar nonce para CSP
-            const nonce = crypto.randomBytes(16).toString("base64");
+            // Generar un nonce único
+            const nonce = getNonce();
 
-            // Cargar y procesar el HTML
-            const distPath = path.join(context.extensionPath, "media", "dist");
-            let html = fs.readFileSync(
-                path.join(distPath, "index.html"),
-                "utf8"
+            // Leer el HTML
+            const indexPath = path.join(
+                context.extensionPath,
+                "media",
+                "dist",
+                "index.html"
+            );
+            let html = fs.readFileSync(indexPath, "utf8");
+
+            // Obtener la URI base para los recursos
+            const distUri = panel.webview.asWebviewUri(
+                vscode.Uri.file(
+                    path.join(context.extensionPath, "media", "dist")
+                )
             );
 
-            // Convertir rutas para el webview
-            const webviewUri = currentPanel.webview.asWebviewUri(
-                vscode.Uri.file(distPath)
-            );
-
-            // Reemplazar rutas y variables
+            // Reemplazar las variables en el HTML
             html = html
+                .replace(/#{cspSource}/g, panel.webview.cspSource)
                 .replace(/#{nonce}/g, nonce)
-                .replace(/#{cspSource}/g, currentPanel.webview.cspSource)
-                .replace(/(href|src)="([^"]*)"/g, (match, p1, p2) => {
-                    // Si la ruta es absoluta, convertirla para el webview
-                    if (p2.startsWith("/")) {
-                        return `${p1}="${webviewUri}${p2}"`;
-                    }
-                    return match;
-                });
+                // Reemplazar las rutas de los assets
+                .replace(/"\.?\//g, `"${distUri.toString()}/`);
 
-            currentPanel.webview.html = html;
-
-            // Manejar mensajes desde el webview
-            currentPanel.webview.onDidReceiveMessage(
-                (message) => {
-                    switch (message.command) {
-                        case "alert":
-                            vscode.window.showInformationMessage(message.text);
-                            return;
-                    }
-                },
-                undefined,
-                context.subscriptions
-            );
-
-            // Limpiar cuando el panel se cierre
-            currentPanel.onDidDispose(
-                () => {
-                    currentPanel = undefined;
-                },
-                null,
-                context.subscriptions
-            );
-        })
+            panel.webview.html = html;
+        }
     );
+
+    context.subscriptions.push(disposable);
 }
 
+// Función para generar un nonce
+function getNonce() {
+    let text = "";
+    const possible =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
 function deactivate() {}
 
 module.exports = {

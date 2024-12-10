@@ -11,8 +11,9 @@
         "*.suo": true,
         "*.log": true,
         "*.gitignore": false,
-        "*.vscodeignore": true,
         "*.md": true,
+        "*.vscodeignore": true,
+        "**/dist": false,
         ".vs/": true
     },
 
