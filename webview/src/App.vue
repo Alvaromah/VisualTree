@@ -1,33 +1,64 @@
-<template>
-    <div class="p-4">
-        <h1 class="text-2xl font-bold mb-4">{{ message }}</h1>
-        <button @click="sendMessage" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Send Message
-        </button>
-    </div>
-</template>
-
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue';
+import TreeView from './components/TreeView.vue';
 
 const props = defineProps({
     vscode: {
         type: Object,
         required: true
     }
-})
+});
 
-const message = ref('Hello from Vue + Tailwind!')
+const items = ref([]);
+const selectedPaths = ref([]);
+const filterPattern = ref('');
 
-// Ejemplo de envío de mensaje a la extensión
-const sendMessage = () => {
+const handleSelectionChange = (paths) => {
+    selectedPaths.value = paths;
+};
+
+const showSelectedContent = () => {
     props.vscode.postMessage({
-        command: 'alert',
-        text: message.value
-    })
-}
+        command: 'showSelected',
+        paths: selectedPaths.value
+    });
+};
 
 onMounted(() => {
-    console.log('App mounted')
-})
+    // Listen for messages from extension
+    window.addEventListener('message', event => {
+        const message = event.data;
+        switch (message.command) {
+            case 'setFiles':
+                items.value = message.files;
+                break;
+        }
+    });
+
+    // Request initial file tree
+    props.vscode.postMessage({
+        command: 'getFiles'
+    });
+});
 </script>
+
+<template>
+    <div class="p-4">
+        <div class="mb-4">
+            <textarea v-model="filterPattern" placeholder="Enter .gitignore style patterns..."
+                class="w-full p-2 border rounded-md h-20 text-sm font-mono"></textarea>
+        </div>
+
+        <div class="mb-4">
+            <button @click="showSelectedContent"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                :disabled="selectedPaths.length === 0">
+                Show Selected Content
+            </button>
+        </div>
+
+        <div class="border rounded-md">
+            <TreeView :items="items" :filter="filterPattern" @selection-change="handleSelectionChange" />
+        </div>
+    </div>
+</template>
