@@ -5,6 +5,8 @@ const fs = require("fs");
 function activate(context) {
     let currentPanel = undefined;
 
+    console.log('Congratulations, your extension "visual-tree" is now active!');
+
     const disposable = vscode.commands.registerCommand(
         "visual-tree.showUI",
         function () {
@@ -75,6 +77,7 @@ function activate(context) {
             // Handle messages from the webview with error handling
             currentPanel.webview.onDidReceiveMessage(
                 async (message) => {
+                    console.log("Received message from webview:", message);
                     try {
                         switch (message.command) {
                             case "getFiles":
@@ -85,7 +88,8 @@ function activate(context) {
                                 });
                                 break;
                             case "showSelected":
-                                await showSelectedContent(message.paths);
+                                const paths = JSON.parse(message.paths);
+                                await showSelectedContent(paths);
                                 break;
                             case "error":
                                 vscode.window.showErrorMessage(message.message);

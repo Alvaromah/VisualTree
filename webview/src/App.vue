@@ -8,7 +8,13 @@ const selectedPaths = ref([]);
 const filterPattern = ref('');
 const isLoading = ref(false);
 
-const handleSelectionChange = (paths) => {
+const handleSelectionChange = async (paths) => {
+    await vscode.postMessage({
+        command: 'ppSelected',
+        paths: paths
+    });
+
+
     console.log('Selection changed:', paths);
     selectedPaths.value = paths;
 };
@@ -18,9 +24,10 @@ const showSelectedContent = async () => {
 
     isLoading.value = true;
     try {
+        const serializedPaths = JSON.stringify(selectedPaths.value);
         await vscode.postMessage({
             command: 'showSelected',
-            paths: selectedPaths.value
+            paths: serializedPaths
         });
     } catch (error) {
         console.error('Error showing content:', error);
@@ -60,7 +67,7 @@ onMounted(() => {
         </div>
 
         <div class="mb-4">
-            <button @click="showSelectedContent" :disabled="selectedPaths.length === 0 || isLoading"
+            <button @click="showSelectedContent"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center">
                 <span v-if="isLoading" class="mr-2">Loading...</span>
                 <span>Show Selected Content ({{ selectedPaths.length }} files)</span>

@@ -12,14 +12,14 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['selectionChange']);
+const emit = defineEmits(['selection-change']);
 
 const selectedItems = ref(new Set());
 const expandedFolders = ref(new Set());
 
 // Watch selectedItems and emit changes
 watch(selectedItems, (newVal) => {
-    emit('selectionChange', Array.from(newVal));
+    emit('selection-change', Array.from(newVal));
 }, { deep: true });
 
 // Convert .gitignore style pattern to regex
@@ -77,7 +77,7 @@ const toggleSelection = (item) => {
     }
 
     // Force emit current selection
-    emit('selectionChange', Array.from(selectedItems.value));
+    emit('selection-change', Array.from(selectedItems.value));
 };
 
 const toggleFolder = (folder) => {
@@ -170,7 +170,7 @@ const getSelectionState = (folder) => {
             <!-- Recursively render children if folder is expanded -->
             <template v-if="item.type === 'folder' && expandedFolders.has(item.path)">
                 <div v-for="child in item.children" :key="child.path" class="ml-4">
-                    <TreeView :items="[child]" :filter="filter" @selection-change="emit('selectionChange', $event)" />
+                    <TreeView :items="[child]" :filter="filter" @selection-change="emit('selection-change', $event)" />
                 </div>
             </template>
         </template>
