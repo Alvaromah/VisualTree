@@ -1,14 +1,19 @@
 <template>
-    <div class="tree-view">
-        <TreeItem v-for="item in filteredItems" :key="item.path" :item="item" />
+    <div class="tree-view bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-3 border-b border-gray-200">
+            <input type="text" placeholder="Filter files..." v-model="filterText"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+        <div class="tree-content p-2 max-h-[calc(80vh-4rem)] overflow-y-auto">
+            <TreeItem v-for="item in filteredItems" :key="item.path" :item="item" class="first:mt-0" />
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, computed, provide } from 'vue';
-import TreeItem from './TreeItem.vue'; // Ensure the correct path
+import TreeItem from './TreeItem.vue';
 
-// Define props
 const props = defineProps({
     items: {
         type: Array,
@@ -20,14 +25,11 @@ const props = defineProps({
     }
 });
 
-// Define emits
 const emit = defineEmits(['selection-change']);
-
-// Reactive sets for selection and expansion
+const filterText = ref('');
 const selectedItems = ref(new Set());
 const expandedFolders = ref(new Set());
 
-// Function to emit selection changes
 const emitSelection = () => {
     emit('selection-change', Array.from(selectedItems.value));
 };
@@ -41,10 +43,8 @@ provide('toggleSelection', (item) => {
         const allSelected = folderFiles.every(file => selectedItems.value.has(file.path));
 
         if (allSelected) {
-            // Deselect all
             folderFiles.forEach(file => selectedItems.value.delete(file.path));
         } else {
-            // Select all
             folderFiles.forEach(file => selectedItems.value.add(file.path));
         }
     } else {
@@ -74,7 +74,6 @@ provide('getSelectionState', (folder) => {
     return 'some';
 });
 
-// Function to get all files under a folder recursively
 const getAllFiles = (folder) => {
     const files = [];
     const traverse = (item) => {
@@ -88,9 +87,7 @@ const getAllFiles = (folder) => {
     return files;
 };
 
-// Convert .gitignore style pattern to regex
 const patternToRegex = (pattern) => {
-    // Escape regex special characters except for * and ?
     const escaped = pattern.replace(/[-\/\\^$+?.()|[\]{}]/g, '\\$&');
     return new RegExp(
         '^' + escaped
@@ -99,7 +96,6 @@ const patternToRegex = (pattern) => {
     );
 };
 
-// Functional filter to filter the tree
 const filterTree = (items, patterns) => {
     return items
         .map(item => {
@@ -114,11 +110,10 @@ const filterTree = (items, patterns) => {
         .filter(Boolean);
 };
 
-// Compute the filtered items
 const filteredItems = computed(() => {
-    if (!props.filter.trim()) return props.items;
+    if (!filterText.value.trim()) return props.items;
 
-    const patterns = props.filter
+    const patterns = filterText.value
         .split('\n')
         .map(p => p.trim())
         .filter(p => p && !p.startsWith('#'))
@@ -129,8 +124,15 @@ const filteredItems = computed(() => {
 </script>
 
 <style scoped>
-.tree-view {
-    max-height: 80vh;
-    overflow-y: auto;
+.tree-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tree-content::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-lg;
+}
+
+.tree-content::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors;
 }
 </style>
