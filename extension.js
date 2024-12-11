@@ -19,6 +19,7 @@ function activate(context) {
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
+                    retainContextWhenHidden: true,
                     localResourceRoots: [
                         vscode.Uri.file(
                             path.join(context.extensionPath, "media", "dist")
@@ -42,15 +43,17 @@ function activate(context) {
                 )
             );
 
+            // Updated CSP to allow necessary resources
             const csp = `
-            default-src 'none';
-            style-src ${currentPanel.webview.cspSource} 'unsafe-inline';
-            script-src 'nonce-${nonce}';
-            font-src ${currentPanel.webview.cspSource};
-            img-src ${currentPanel.webview.cspSource} https:;
-            connect-src ${currentPanel.webview.cspSource} https:;
-        `;
+                default-src 'none';
+                style-src ${currentPanel.webview.cspSource} 'unsafe-inline';
+                script-src ${currentPanel.webview.cspSource} 'unsafe-inline' 'unsafe-eval';
+                font-src ${currentPanel.webview.cspSource};
+                img-src ${currentPanel.webview.cspSource} https:;
+                connect-src ${currentPanel.webview.cspSource} https:;
+            `;
 
+            // Updated HTML modifications
             html = html
                 .replace(
                     /<meta\s+http-equiv="Content-Security-Policy"[^>]*>/,
@@ -59,28 +62,39 @@ function activate(context) {
                         " "
                     )}">`
                 )
-                .replace(/"\.\/assets\//g, `"${distUri}/assets/`)
+                .replace(/"\/assets\//g, `${distUri}/assets/`)
+                .replace(/src=".\//g, `src="${distUri}/`)
+                .replace(/href=".\//g, `href="${distUri}/`)
                 .replace(
-                    /<script\s+type="module"\s+crossorigin/g,
-                    `<script type="module" crossorigin nonce="${nonce}"`
+                    /<script\s+type="module"/g,
+                    `<script type="module" nonce="${nonce}"`
                 );
 
             currentPanel.webview.html = html;
 
-            // Handle messages from the webview
+            // Handle messages from the webview with error handling
             currentPanel.webview.onDidReceiveMessage(
                 async (message) => {
-                    switch (message.command) {
-                        case "getFiles":
-                            const files = await getWorkspaceFiles();
-                            currentPanel.webview.postMessage({
-                                command: "setFiles",
-                                files,
-                            });
-                            break;
-                        case "showSelected":
-                            await showSelectedContent(message.paths);
-                            break;
+                    try {
+                        switch (message.command) {
+                            case "getFiles":
+                                const files = await getWorkspaceFiles();
+                                currentPanel.webview.postMessage({
+                                    command: "setFiles",
+                                    files,
+                                });
+                                break;
+                            case "showSelected":
+                                await showSelectedContent(message.paths);
+                                break;
+                            case "error":
+                                vscode.window.showErrorMessage(message.message);
+                                break;
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage(
+                            `Error: ${error.message}`
+                        );
                     }
                 },
                 undefined,
@@ -99,7 +113,6 @@ function activate(context) {
 
     context.subscriptions.push(disposable);
 }
-
 async function getWorkspaceFiles() {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) return [];

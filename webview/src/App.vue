@@ -1,36 +1,26 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import TreeView from './components/TreeView.vue';
 
-const props = defineProps({
-    vscode: {
-        type: Object,
-        required: true
-    }
-});
+// Inject vscode API instead of using props
+const vscode = inject('vscode');
 
 const items = ref([]);
 const selectedPaths = ref([]);
 const filterPattern = ref('');
 
-// Ensure we're getting the full paths array
 const handleSelectionChange = (paths) => {
-    console.log('Selection changed:', paths); // Debug log
     selectedPaths.value = paths;
 };
 
 const showSelectedContent = () => {
-    console.log('Showing content for paths:', selectedPaths.value); // Debug log
     if (selectedPaths.value.length > 0) {
-        props.vscode?.postMessage({
+        vscode?.postMessage({
             command: 'showSelected',
             paths: selectedPaths.value
         });
     }
 };
-
-// Modified to explicitly declare vscode from acquireVsCodeApi
-const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : undefined;
 
 onMounted(() => {
     // Request initial file tree
@@ -43,6 +33,7 @@ onMounted(() => {
         const message = event.data;
         switch (message.command) {
             case 'setFiles':
+                console.log('Received files:', message.files);
                 items.value = message.files;
                 break;
         }

@@ -2,17 +2,35 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import "./index.css";
 
-// Configuración de la comunicación con VSCode
+// Get vscode API
 const vscode = acquireVsCodeApi();
 
-const app = createApp(App, {
-    vscode, // Pasar vscode como prop
-});
+// Create app with proper error handling
+try {
+    const app = createApp(App);
 
-app.mount("#app");
+    // Provide vscode to all components
+    app.provide("vscode", vscode);
 
-// Manejador de mensajes desde la extensión
-window.addEventListener("message", (event) => {
-    const message = event.data;
-    // Manejar mensajes aquí
+    app.mount("#app");
+
+    // Debug logging
+    console.log("Vue app mounted successfully");
+} catch (error) {
+    console.error("Failed to mount Vue app:", error);
+    if (vscode) {
+        vscode.postMessage({
+            command: "error",
+            message: `Failed to initialize app: ${error.message}`,
+        });
+    }
+}
+
+// Global error handler
+window.addEventListener("error", (event) => {
+    console.error("Global error:", event.error);
+    vscode?.postMessage({
+        command: "error",
+        message: event.error.message,
+    });
 });
