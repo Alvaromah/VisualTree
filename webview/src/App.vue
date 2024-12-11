@@ -1,11 +1,5 @@
 <template>
     <div class="p-4">
-        <!-- Filter Input -->
-        <div class="mb-4">
-            <textarea v-model="filterInput" placeholder="Enter .gitignore style patterns..."
-                class="w-full p-2 border rounded-md h-20 text-sm font-mono"></textarea>
-        </div>
-
         <!-- Show Selected Content Button -->
         <div class="mb-4">
             <button @click="showSelectedContent" :disabled="isLoading || selectedPaths.length === 0"
@@ -32,18 +26,8 @@ const vscode = inject('vscode');
 // Reactive state
 const items = ref([]);
 const selectedPaths = ref([]);
-const filterInput = ref('');
-const filterPattern = ref('');
+const filterPattern = ref('*.gitignore');
 const isLoading = ref(false);
-
-// Debounce the filter input to improve performance
-let debounceTimeout = null;
-watch(filterInput, (newVal) => {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => {
-        filterPattern.value = newVal;
-    }, 300); // 300ms debounce
-});
 
 // Handle selection changes emitted from TreeView
 const handleSelectionChange = (paths) => {
