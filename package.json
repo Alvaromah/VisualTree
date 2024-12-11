@@ -2,6 +2,7 @@
   "name": "visual-tree",
   "displayName": "visual-tree",
   "description": "VisualTree extension",
+  "publisher": "didthis",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.95.0"
