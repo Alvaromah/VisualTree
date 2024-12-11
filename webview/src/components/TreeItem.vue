@@ -21,11 +21,7 @@
                 </svg>
             </template>
             <template v-else>
-                <div class="w-6 mr-2"></div>
-                <svg class="w-5 h-5 text-gray-400 mr-2 flex-shrink-0 group-hover:text-gray-500" viewBox="0 0 20 20"
-                    fill="currentColor">
-                    <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                </svg>
+                <div class="w-6 mr-8"></div>
             </template>
 
             <!-- Checkbox -->
@@ -126,7 +122,6 @@ const handleToggleFolder = () => {
 
 <style scoped>
 .tree-item {
-    background-color: transparent !important;
     user-select: none;
 }
 </style>
