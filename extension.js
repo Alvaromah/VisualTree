@@ -141,21 +141,56 @@ async function showSelectedContent(paths) {
         const content = await Promise.all(
             paths.map(async (filePath) => {
                 const content = await fs.promises.readFile(filePath, "utf8");
-                return `# ${path.basename(
+                const relativePath = vscode.workspace.asRelativePath(filePath);
+                return `## \`${relativePath}\`\n\`\`\`${getLanguageFromPath(
                     filePath
-                )}\n\n\`\`\`\n${content}\n\`\`\`\n\n`;
+                )}\n${content}\n\`\`\``;
             })
         );
 
-        const doc = await vscode.workspace.openTextDocument({
-            content: content.join("---\n\n"),
+        const fullContent = content.join("\n\n");
+
+        // Create a temp file with .md extension
+        const tempFile = await vscode.workspace.openTextDocument({
             language: "markdown",
+            content: fullContent,
         });
 
-        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Two);
+        await vscode.window.showTextDocument(tempFile, {
+            viewColumn: vscode.ViewColumn.Two,
+            preview: true,
+        });
     } catch (error) {
-        vscode.window.showErrorMessage("Error reading selected files");
+        vscode.window.showErrorMessage(`Error reading files: ${error.message}`);
     }
+}
+
+function getLanguageFromPath(filePath) {
+    const extension = path.extname(filePath).toLowerCase();
+    const languageMap = {
+        ".js": "javascript",
+        ".ts": "typescript",
+        ".py": "python",
+        ".html": "html",
+        ".css": "css",
+        ".json": "json",
+        ".md": "markdown",
+        ".vue": "vue",
+        ".jsx": "jsx",
+        ".tsx": "tsx",
+        ".php": "php",
+        ".java": "java",
+        ".rb": "ruby",
+        ".go": "go",
+        ".rs": "rust",
+        ".sql": "sql",
+        ".sh": "bash",
+        ".yml": "yaml",
+        ".yaml": "yaml",
+        ".xml": "xml",
+    };
+
+    return languageMap[extension] || "";
 }
 
 function getNonce() {
