@@ -2,23 +2,30 @@
 import { ref, onMounted, inject } from 'vue';
 import TreeView from './components/TreeView.vue';
 
-// Inject vscode API instead of using props
 const vscode = inject('vscode');
-
 const items = ref([]);
 const selectedPaths = ref([]);
 const filterPattern = ref('');
+const isLoading = ref(false);
 
 const handleSelectionChange = (paths) => {
+    console.log('Selection changed:', paths);
     selectedPaths.value = paths;
 };
 
-const showSelectedContent = () => {
-    if (selectedPaths.value.length > 0) {
-        vscode?.postMessage({
+const showSelectedContent = async () => {
+    if (selectedPaths.value.length === 0) return;
+
+    isLoading.value = true;
+    try {
+        await vscode.postMessage({
             command: 'showSelected',
             paths: selectedPaths.value
         });
+    } catch (error) {
+        console.error('Error showing content:', error);
+    } finally {
+        isLoading.value = false;
     }
 };
 
@@ -31,10 +38,14 @@ onMounted(() => {
     // Listen for messages from extension
     window.addEventListener('message', event => {
         const message = event.data;
+        console.log('Received message:', message);
+
         switch (message.command) {
             case 'setFiles':
-                console.log('Received files:', message.files);
                 items.value = message.files;
+                break;
+            case 'error':
+                console.error('Error from extension:', message.error);
                 break;
         }
     });
@@ -49,10 +60,10 @@ onMounted(() => {
         </div>
 
         <div class="mb-4">
-            <button @click="showSelectedContent"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="selectedPaths.length === 0">
-                Show Selected Content ({{ selectedPaths.length }} files)
+            <button @click="showSelectedContent" :disabled="selectedPaths.length === 0 || isLoading"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center">
+                <span v-if="isLoading" class="mr-2">Loading...</span>
+                <span>Show Selected Content ({{ selectedPaths.length }} files)</span>
             </button>
         </div>
 

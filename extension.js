@@ -151,33 +151,58 @@ async function scanDirectory(dirPath, level = 0) {
 
 async function showSelectedContent(paths) {
     try {
+        // Convert absolute paths to workspace-relative paths for reading
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error("No workspace folder open");
+        }
+        const rootPath = workspaceFolders[0].uri.fsPath;
+
         const content = await Promise.all(
             paths.map(async (filePath) => {
-                const content = await fs.promises.readFile(filePath, "utf8");
-                const relativePath = vscode.workspace.asRelativePath(filePath);
-                return `## \`${relativePath}\`\n\`\`\`${getLanguageFromPath(
-                    filePath
-                )}\n${content}\n\`\`\``;
+                try {
+                    // Use workspace relative path for display
+                    const relativePath =
+                        vscode.workspace.asRelativePath(filePath);
+                    const fileContent = await fs.promises.readFile(
+                        filePath,
+                        "utf8"
+                    );
+
+                    // Get file extension for syntax highlighting
+                    const extension = path.extname(filePath).toLowerCase();
+                    const language = getLanguageFromPath(filePath);
+
+                    // Format the content with markdown
+                    return `## ${relativePath}\n\`\`\`${language}\n${fileContent}\n\`\`\`\n`;
+                } catch (err) {
+                    console.error(`Error reading file ${filePath}:`, err);
+                    return `## ${filePath}\nError reading file: ${err.message}\n`;
+                }
             })
         );
 
-        const fullContent = content.join("\n\n");
+        const fullContent = content.join("\n");
 
-        // Create a temp file with .md extension
-        const tempFile = await vscode.workspace.openTextDocument({
-            language: "markdown",
+        // Create and show document
+        const doc = await vscode.workspace.openTextDocument({
             content: fullContent,
+            language: "markdown",
         });
 
-        await vscode.window.showTextDocument(tempFile, {
+        await vscode.window.showTextDocument(doc, {
             viewColumn: vscode.ViewColumn.Two,
-            preview: true,
+            preview: false,
         });
     } catch (error) {
-        vscode.window.showErrorMessage(`Error reading files: ${error.message}`);
+        vscode.window.showErrorMessage(
+            `Failed to show content: ${error.message}`
+        );
+        throw error; // Re-throw to be caught by the message handler
     }
 }
 
+// Update the getLanguageFromPath function to handle more file types
 function getLanguageFromPath(filePath) {
     const extension = path.extname(filePath).toLowerCase();
     const languageMap = {
@@ -189,21 +214,36 @@ function getLanguageFromPath(filePath) {
         ".json": "json",
         ".md": "markdown",
         ".vue": "vue",
-        ".jsx": "jsx",
-        ".tsx": "tsx",
+        ".jsx": "javascript",
+        ".tsx": "typescript",
         ".php": "php",
         ".java": "java",
         ".rb": "ruby",
         ".go": "go",
         ".rs": "rust",
         ".sql": "sql",
-        ".sh": "bash",
+        ".sh": "shell",
         ".yml": "yaml",
         ".yaml": "yaml",
         ".xml": "xml",
+        ".txt": "text",
+        ".env": "text",
+        ".gitignore": "text",
+        ".cpp": "cpp",
+        ".c": "c",
+        ".h": "c",
+        ".hpp": "cpp",
+        ".cs": "csharp",
+        ".swift": "swift",
+        ".kt": "kotlin",
+        ".gradle": "gradle",
+        ".dart": "dart",
+        ".lua": "lua",
+        ".r": "r",
+        ".scala": "scala",
     };
 
-    return languageMap[extension] || "";
+    return languageMap[extension] || "text";
 }
 
 function getNonce() {
