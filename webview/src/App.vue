@@ -1,7 +1,7 @@
 <template>
     <div class="p-4 h-full">
         <!-- Tree View -->
-        <div class="border rounded-md h-full">
+        <div class="border rounded-md">
             <TreeView :items="items" :filter="filterPattern" @selection-change="handleSelectionChange" />
         </div>
 

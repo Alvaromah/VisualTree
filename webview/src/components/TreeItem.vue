@@ -126,6 +126,7 @@ const handleToggleFolder = () => {
 
 <style scoped>
 .tree-item {
+    background-color: transparent !important;
     user-select: none;
 }
 </style>
