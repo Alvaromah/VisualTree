@@ -1,17 +1,16 @@
 <template>
-    <div class="p-4">
-        <!-- Show Selected Content Button -->
-        <div class="mb-4">
+    <div class="p-4 h-full">
+        <!-- Tree View -->
+        <div class="border rounded-md h-full">
+            <TreeView :items="items" :filter="filterPattern" @selection-change="handleSelectionChange" />
+        </div>
+
+        <div class="my-4 flex justify-center">
             <button @click="showSelectedContent" :disabled="isLoading || selectedPaths.length === 0"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center">
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
                 <span v-if="isLoading" class="mr-2">Loading...</span>
                 <span>Show Selected Content ({{ selectedPaths.length }} files)</span>
             </button>
-        </div>
-
-        <!-- Tree View -->
-        <div class="border rounded-md">
-            <TreeView :items="items" :filter="filterPattern" @selection-change="handleSelectionChange" />
         </div>
     </div>
 </template>
