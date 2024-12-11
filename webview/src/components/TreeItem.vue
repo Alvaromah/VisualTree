@@ -1,10 +1,7 @@
 <template>
     <div>
-        <div :class="[
-            'tree-item group flex items-center px-2 py-1.5 rounded-md transition-colors duration-150',
-            level > 0 ? 'ml-4' : '',
-            'hover:bg-gray-50 cursor-pointer'
-        ]">
+        <div class="tree-item group flex items-center px-2 py-1.5 rounded-md transition-colors duration-150 hover:bg-gray-50 cursor-pointer"
+            :style="{ paddingLeft: `${level * 1.5}rem` }">
             <!-- Expand/Collapse Button for Folders -->
             <template v-if="item.type === 'folder'">
                 <button @click="handleToggleFolder"
@@ -67,7 +64,7 @@
         </div>
 
         <!-- Render children if folder is expanded -->
-        <div v-if="item.type === 'folder' && isExpanded" class="ml-4 mt-0.5 space-y-0.5">
+        <div v-if="item.type === 'folder' && isExpanded" class="mt-0.5 space-y-0.5">
             <TreeItem v-for="child in item.children" :key="child.path" :item="child" :level="level + 1" />
         </div>
     </div>
@@ -122,6 +119,7 @@ const handleToggleFolder = () => {
 
 <style scoped>
 .tree-item {
+    background-color: transparent !important;
     user-select: none;
 }
 </style>
