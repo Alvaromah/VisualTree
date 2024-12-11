@@ -13,18 +13,31 @@ const items = ref([]);
 const selectedPaths = ref([]);
 const filterPattern = ref('');
 
+// Ensure we're getting the full paths array
 const handleSelectionChange = (paths) => {
+    console.log('Selection changed:', paths); // Debug log
     selectedPaths.value = paths;
 };
 
 const showSelectedContent = () => {
-    props.vscode.postMessage({
-        command: 'showSelected',
-        paths: selectedPaths.value
-    });
+    console.log('Showing content for paths:', selectedPaths.value); // Debug log
+    if (selectedPaths.value.length > 0) {
+        props.vscode?.postMessage({
+            command: 'showSelected',
+            paths: selectedPaths.value
+        });
+    }
 };
 
+// Modified to explicitly declare vscode from acquireVsCodeApi
+const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : undefined;
+
 onMounted(() => {
+    // Request initial file tree
+    vscode?.postMessage({
+        command: 'getFiles'
+    });
+
     // Listen for messages from extension
     window.addEventListener('message', event => {
         const message = event.data;
@@ -33,11 +46,6 @@ onMounted(() => {
                 items.value = message.files;
                 break;
         }
-    });
-
-    // Request initial file tree
-    props.vscode.postMessage({
-        command: 'getFiles'
     });
 });
 </script>
@@ -51,9 +59,9 @@ onMounted(() => {
 
         <div class="mb-4">
             <button @click="showSelectedContent"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 :disabled="selectedPaths.length === 0">
-                Show Selected Content
+                Show Selected Content ({{ selectedPaths.length }} files)
             </button>
         </div>
 

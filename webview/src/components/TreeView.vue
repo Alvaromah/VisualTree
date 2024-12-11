@@ -17,6 +17,11 @@ const emit = defineEmits(['selectionChange']);
 const selectedItems = ref(new Set());
 const expandedFolders = ref(new Set());
 
+// Watch selectedItems and emit changes
+watch(selectedItems, (newVal) => {
+    emit('selectionChange', Array.from(newVal));
+}, { deep: true });
+
 // Convert .gitignore style pattern to regex
 const patternToRegex = (pattern) => {
     return new RegExp(
@@ -52,8 +57,6 @@ const filteredItems = computed(() => {
 });
 
 const toggleSelection = (item) => {
-    const itemPath = item.path;
-
     if (item.type === 'folder') {
         const folderFiles = getAllFiles(item);
         const allSelected = folderFiles.every(file => selectedItems.value.has(file.path));
@@ -66,13 +69,14 @@ const toggleSelection = (item) => {
             folderFiles.forEach(file => selectedItems.value.add(file.path));
         }
     } else {
-        if (selectedItems.value.has(itemPath)) {
-            selectedItems.value.delete(itemPath);
+        if (selectedItems.value.has(item.path)) {
+            selectedItems.value.delete(item.path);
         } else {
-            selectedItems.value.add(itemPath);
+            selectedItems.value.add(item.path);
         }
     }
 
+    // Force emit current selection
     emit('selectionChange', Array.from(selectedItems.value));
 };
 
